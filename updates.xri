@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xri version="1.0">
+   <description>
+      <p>
+         Seumi local build of PixInsight MCP Watcher, built against PixInsight 1.9.5.
+         Source: https://github.com/Seumi/pixinsight-mcp
+         Upstream: https://github.com/pardovot/pixinsight-mcp
+         This is a personal local-signing release, not a public CPD-certified release.
+         It is intended only for installations using the corresponding PixInsight license
+         with the local signing identity configured.
+      </p>
+   </description>
+   <metadata id="20260927-seumi-local-mcpwatcher" releaseDate="20260927">
+      <title>
+         Seumi Local - PixInsight MCP Watcher Module 1.3.5
+      </title>
+      <description>
+         <p>
+            macOS universal module for arm64 and x86_64. The idle watcher polls
+            the bridge directory through a native timer. Processing commands execute
+            synchronously and can occupy PixInsight while running.
+            Open it under Process &gt; Utilities &gt; MCP Watcher.
+         </p>
+      </description>
+   </metadata>
+   <platform os="macosx" arch="all" version="1.9.5:1.9.99">
+      <package fileName="mcpwatcher-module-macosx.zip" sha1="2a40ad73b8d087f29057c302b7d9c47a1958316f" type="module" metadata="20260927-seumi-local-mcpwatcher"/>
+   </platform>
+</xri>
+<Signature developerId="6069365815637215" timestamp="2026-09-27T09:56:31.776Z" encoding="Base64">E3phdyayOq2XYas9DcJi36gcfSitQn0OHVqc9i1BbnGE8pd1Q3wwqw2gYeKLoGlgx4YXO75LGFLUm8Re4PDEAw==</Signature>
