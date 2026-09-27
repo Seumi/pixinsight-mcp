@@ -1,4 +1,14 @@
-# PixInsight MCP
+# PixInsight MCP — Seumi / pi coding agent
+
+这是 [Seumi/pixinsight-mcp](https://github.com/Seumi/pixinsight-mcp)，基于
+[pardovot/pixinsight-mcp](https://github.com/pardovot/pixinsight-mcp) 的公开 fork，保留 MIT 许可和原作者署名。
+新增的 pi coding agent 适配、技能、测试及安装说明见 **[integrations/pi-agent](integrations/pi-agent/README.md)**。
+
+- 使用本 fork 请从源码构建；下面的上游 npm 包不会包含本 fork 的新增代码。
+- **源码仓库不等于 PixInsight 更新源。** 本 fork 尚未发布自己的签名模块和 `dist/updates.xri`。
+  下文的 PixInsight 更新地址仍指向上游；不要仅替换 URL 的账号名就安装。
+- 完全自有的模块分发还需配置自己的 PixInsight 签名身份、构建及发布流程，见
+  [docs/RELEASING.md](docs/RELEASING.md)。本次不会复制或冒用上游签名私钥。
 
 An MCP server that lets an AI assistant drive PixInsight: open images, measure them, run any
 installed process, read the results back. PixInsight stays responsive while it works, so you can
@@ -6,7 +16,7 @@ watch and intervene.
 
 Cross-platform: Windows, macOS and Linux.
 
-## Install
+## 上游通用 MCP 安装参考
 
 **1. MCP server.** Any MCP client works. This is a stock stdio server with no client-specific code.
 
@@ -33,6 +43,8 @@ Codex CLI, in `~/.codex/config.toml`:
 command = "npx"
 args = ["-y", "@pardovot/pixinsight-mcp"]
 ```
+
+**pi coding agent:** 本仓库提供原生 pi 扩展，包含工作区查询、需要确认的图像预览、受控处理和后台元数据轮询。安装与安全边界见 [integrations/pi-agent](integrations/pi-agent/README.md)。
 
 On Windows, if a client cannot resolve `npx`, use `"command": "cmd"` with
 `"args": ["/c", "npx", "-y", "@pardovot/pixinsight-mcp"]`.

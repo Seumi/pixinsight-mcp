@@ -1,0 +1,32 @@
+{
+  "name": "pi-pixinsight",
+  "version": "0.1.0",
+  "private": true,
+  "description": "pi coding agent 的 PixInsight 工作区与受控处理扩展",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pi-package", "pixinsight"],
+  "pi": {
+    "extensions": ["./src/extension.ts"],
+    "skills": ["./skills"]
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.26.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.87.1",
+    "typebox": "^1.3.27"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.0",
+    "typebox": "1.3.27",
+    "typescript": "^5.7.0"
+  }
+}

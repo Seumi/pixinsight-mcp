@@ -19,6 +19,19 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm test
+      # pi 适配器是独立包，不能依赖开发者本机已安装的 node_modules。
+      - name: Install pi adapter dependencies
+        working-directory: integrations/pi-agent
+        run: npm ci --ignore-scripts
+      - name: Typecheck pi adapter
+        working-directory: integrations/pi-agent
+        run: npm run check
+      - name: Test pi adapter
+        working-directory: integrations/pi-agent
+        run: npm test
+      - name: Smoke-test pi adapter against the real MCP server
+        working-directory: integrations/pi-agent
+        run: npm run smoke
       # The server checked the way a client sees it: startup, tool schemas,
       # error paths, probe calls with missing required args. Runs fine without
       # PixInsight, invalid calls are rejected before they reach the bridge.

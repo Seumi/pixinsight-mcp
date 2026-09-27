@@ -42,59 +42,70 @@ export function renderScript(
   var mode = ${JSON.stringify(stf)};
   var mtf = function(m, x){ if (x <= 0) return 0; if (x >= 1) return 1; return ((m - 1)*x)/(((2*m - 1)*x) - m); };
 
-  // Stretch parameters from the FULL image (crops share the full-field stretch).
-  var htRows = null; // [[c0,m,c1] per HT row index]
-  if (mode === "auto") {
-    var meds = [], mads = [];
-    var nch = Math.min(src.numberOfChannels, 3);
-    for (var c = 0; c < nch; ++c) {
-      src.selectedChannel = c;
-      meds.push(src.median()); mads.push(src.MAD());
-    }
-    src.resetSelections();
-    var med = 0, mad = 0;
-    for (var c = 0; c < nch; ++c) { med += meds[c]/nch; mad += mads[c]/nch; }
-    if (med < 2*1.4826*mad) {
-      warnings.push("degenerate-median (med " + sig(med) + " < 2x1.4826xMAD " + sig(1.4826*mad) + ", mostly-empty layer): autostretch clamped to gentle fixed MTF - prefer stf:'asis' or render the recombined view; never judge a star layer on 'auto'");
-      htRows = { 3: [0, 0.01, 1] };
-    } else {
-      var c0 = Math.max(0, Math.min(1, med - 2.8*1.4826*mad));
-      var m = mtf(0.25, med - c0);
-      htRows = { 3: [c0, m, 1] };
-    }
-  } else if (mode === "view") {
-    var s = v.stf; // rows [m, c0, c1, r0, r1]
-    var identity = true;
-    for (var c = 0; c < 3; ++c)
-      if (Math.abs(s[c][0] - 0.5) > 1e-6 || Math.abs(s[c][1]) > 1e-6 || Math.abs(s[c][2] - 1) > 1e-6) identity = false;
-    if (identity) {
-      warnings.push("view has no STF set - rendering as-is");
-    } else {
-      htRows = { 0: [s[0][1], s[0][0], s[0][2]], 1: [s[1][1], s[1][0], s[1][2]], 2: [s[2][1], s[2][0], s[2][2]] };
-    }
-  }
-
-  // Temp hidden window; assign honors the source selectedRect (crop at copy).
-  var r = ${rectJs};
-  var x0 = 0, y0 = 0, x1 = src.width, y1 = src.height;
-  if (r) {
-    x0 = Math.max(0, Math.min(src.width - 1, Math.round(r[0])));
-    y0 = Math.max(0, Math.min(src.height - 1, Math.round(r[1])));
-    x1 = Math.max(x0 + 1, Math.min(src.width, Math.round(r[2])));
-    y1 = Math.max(y0 + 1, Math.min(src.height, Math.round(r[3])));
-  }
-  var tmpId = "mcp_render_tmp";
-  var ex = ImageWindow.windowById(tmpId);
-  if (!ex.isNull) ex.forceClose();
-  var tw = new ImageWindow(x1 - x0, y1 - y0, src.numberOfChannels, 32, true, src.isColor, tmpId);
-  var tv = tw.mainView;
-  tv.beginProcess();
-  if (r) src.selectedRect = new Rect(x0, y0, x1, y1);
-  tv.image.assign(src);
-  src.resetSelections();
-  tv.endProcess();
-
+  var tw = null;
   try {
+    // 选区栈保留矩形、通道和范围裁剪等完整状态；统计与无 rect 的复制均从完整图开始。
+    src.pushSelections();
+    try {
+      src.resetSelections();
+      // Stretch parameters from the FULL image (crops share the full-field stretch).
+      var htRows = null; // [[c0,m,c1] per HT row index]
+      if (mode === "auto") {
+        var meds = [], mads = [];
+        var nch = Math.min(src.numberOfChannels, 3);
+        for (var c = 0; c < nch; ++c) {
+          src.selectedChannel = c;
+          meds.push(src.median()); mads.push(src.MAD());
+        }
+        src.resetSelections();
+        var med = 0, mad = 0;
+        for (var c = 0; c < nch; ++c) { med += meds[c]/nch; mad += mads[c]/nch; }
+        if (med < 2*1.4826*mad) {
+          warnings.push("degenerate-median (med " + sig(med) + " < 2x1.4826xMAD " + sig(1.4826*mad) + ", mostly-empty layer): autostretch clamped to gentle fixed MTF - prefer stf:'asis' or render the recombined view; never judge a star layer on 'auto'");
+          htRows = { 3: [0, 0.01, 1] };
+        } else {
+          var c0 = Math.max(0, Math.min(1, med - 2.8*1.4826*mad));
+          var m = mtf(0.25, med - c0);
+          htRows = { 3: [c0, m, 1] };
+        }
+      } else if (mode === "view") {
+        var s = v.stf; // rows [m, c0, c1, r0, r1]
+        var identity = true;
+        for (var c = 0; c < 3; ++c)
+          if (Math.abs(s[c][0] - 0.5) > 1e-6 || Math.abs(s[c][1]) > 1e-6 || Math.abs(s[c][2] - 1) > 1e-6) identity = false;
+        if (identity) {
+          warnings.push("view has no STF set - rendering as-is");
+        } else {
+          htRows = { 0: [s[0][1], s[0][0], s[0][2]], 1: [s[1][1], s[1][0], s[1][2]], 2: [s[2][1], s[2][0], s[2][2]] };
+        }
+      }
+
+      // assign 仅裁剪临时副本；复制结束或失败时均恢复源选区。
+      var r = ${rectJs};
+      var x0 = 0, y0 = 0, x1 = src.width, y1 = src.height;
+      if (r) {
+        x0 = Math.max(0, Math.min(src.width - 1, Math.round(r[0])));
+        y0 = Math.max(0, Math.min(src.height - 1, Math.round(r[1])));
+        x1 = Math.max(x0 + 1, Math.min(src.width, Math.round(r[2])));
+        y1 = Math.max(y0 + 1, Math.min(src.height, Math.round(r[3])));
+      }
+      var tmpId = "mcp_render_tmp", suffix = 0;
+      while (!ImageWindow.windowById(tmpId).isNull)
+        tmpId = "mcp_render_tmp_" + (++suffix);
+      tw = new ImageWindow(x1 - x0, y1 - y0, src.numberOfChannels, 32, true, src.isColor, tmpId);
+      if (tw.isNull) throw new Error("Failed to create render window");
+      var tv = tw.mainView;
+      tv.beginProcess();
+      try {
+        if (r) src.selectedRect = new Rect(x0, y0, x1, y1);
+        tv.image.assign(src);
+      } finally {
+        tv.endProcess();
+      }
+    } finally {
+      src.popSelections();
+    }
+
     if (htRows) {
       var P = new HistogramTransformation;
       var H = [[0,0.5,1,0,1],[0,0.5,1,0,1],[0,0.5,1,0,1],[0,0.5,1,0,1],[0,0.5,1,0,1]];
@@ -103,19 +114,20 @@ export function renderScript(
         H[row|0] = [t[0], t[1], t[2], 0, 1];
       }
       P.H = H;
-      P.executeOn(tv, false);
+      if (P.executeOn(tv, false) === false) throw new Error("HistogramTransformation failed");
     }
     var dsf = ${ds};
     if (dsf > 1) {
       var IR = new IntegerResample;
       IR.zoomFactor = -dsf;
-      IR.executeOn(tv, false);
+      if (IR.executeOn(tv, false) === false) throw new Error("IntegerResample failed");
     }
     var bmp = tv.image.render();
-    bmp.save(${out}, ${q});
+    if (bmp.save(${out}, ${q}) === false) throw new Error("Failed to save rendered image: " + ${out});
     var ow = tv.image.width, oh = tv.image.height;
   } finally {
-    tw.forceClose();
+    // 仅关闭本次创建的窗口，不通过 ID 查找并关闭其他窗口。
+    if (tw && !tw.isNull) tw.forceClose();
   }
   return JSON.stringify({ viewId: ${id}, path: ${out}, width: ow, height: oh,
     stfMode: mode, stfApplied: !!htRows,

@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "tsc && node scripts/check-handler-drift.mjs",
-    "test": "tsc && node --test && node scripts/check-handler-drift.mjs",
+    "test": "tsc && node scripts/run-tests.mjs && node scripts/check-handler-drift.mjs",
     "test:recipe": "node scripts/smoke-osc-rgb-linear.mjs",
     "library": "node scripts/add-library-entry.mjs",
     "dev": "tsc --watch",
