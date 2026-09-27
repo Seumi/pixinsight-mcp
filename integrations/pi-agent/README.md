@@ -29,15 +29,21 @@ pi --extension ./src/extension.ts --skill ./skills/pixinsight
 
 ## 安装 PixInsight 侧（需要用户操作）
 
-先保存自己的工作。PixInsight 中：
+先保存自己的工作，并选择正确的更新源：
 
-1. `Resources > Updates > Manage Repositories` 添加上游仓库：
-   `https://raw.githubusercontent.com/pardovot/pixinsight-mcp/dist/`
-2. `Resources > Updates > Check for Updates`，核对发布者和签名后安装、重启。
+| 更新源 | 用途 |
+|---|---|
+| `https://raw.githubusercontent.com/Seumi/pixinsight-mcp/dist-local/` | 本仓库自己的源码构建与本地签名，当前仅 macOS / PI 1.9.5+；只能用于相应许可证并已配置本地签名身份的安装 |
+| `https://raw.githubusercontent.com/Seumi/pixinsight-mcp/dist/` | 上游三平台已签名包的原样镜像，发布者仍为 OfirPardo；不是本机自签名版本 |
+
+本地签名身份配置与安全边界见仓库根目录 [docs/LOCAL-SIGNING.md](../../docs/LOCAL-SIGNING.md)。普通用户的许可证不能自动信任另一个用户的本地签名，请勿盲目使用 `dist-local`。
+
+1. `Resources > Updates > Manage Repositories` 添加所选地址。不要同时启用同一模块的多个来源。
+2. `Resources > Updates > Check for Updates`，核对签名后安装、重启；签名无效时不要关闭验证。
 3. `Process > Utilities > MCP Watcher > Start`。
-4. 回到 pi：`/pixinsight status`。检查 heartbeat.live，而不只是 mcpConnected。
+4. 回到 pi：`/pixinsight status`。检查 heartbeat.live，而不只是 mcpConnected；再做只读工作区查询。
 
-以上更新地址仍是**上游**签名模块，不是本 fork 自己的发布源。`Seumi/pixinsight-mcp` 当前用于源码与适配器开发，尚未发布自己的 `dist/updates.xri`；不能直接替换 URL 的账号名。自有模块发布需要自己的 PixInsight 签名身份及配置，见仓库根目录 `docs/RELEASING.md`。
+本地身份与公开 CPD 身份是两回事。以后若要把修改过的模块正式分发给其他许可证用户，需要相应的公开签名身份；自动化发布流程见仓库根目录 `docs/RELEASING.md`。
 
 这些是第三方原生模块，拥有 PI 进程权限。此适配包不代表对其全部代码的安全审计。版本不兼容须按上游指引升级，不能绕过 handler revision 检查。
 

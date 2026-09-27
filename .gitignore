@@ -28,5 +28,10 @@ data/_pre-v2/**
 # Generated per-build by module/build.mjs
 module/src/BuildTimestamp.h
 
-# Code signatures are generated (node module/sign.mjs <file>), never committed.
+# 本地产物只发布到独立分发分支，不混入源码分支。
+pi-repo/
+
+# 签名密钥不得提交；.xsgn 是公开签名，但只随分发产物发布。
+*.xssk
+signing-key.json
 *.xsgn

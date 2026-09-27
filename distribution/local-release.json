@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "channel": "dist-local",
+  "sourceRepository": "https://github.com/Seumi/pixinsight-mcp",
+  "sourceCommit": "582e9e4015498f4d1a6da3a0af7fa9ee230dc699",
+  "distributionCommit": "6fbec0d13f2862590246a341a37003a655bc6d91",
+  "repositoryUrl": "https://raw.githubusercontent.com/Seumi/pixinsight-mcp/dist-local/",
+  "moduleVersion": "1.3.5",
+  "pixInsightVersionRange": "1.9.5:1.9.99",
+  "platform": "macosx",
+  "architectures": ["x86_64", "arm64"],
+  "signing": {
+    "kind": "local-license-identity",
+    "scope": "Installations using the corresponding PixInsight license with the local signing identity configured",
+    "publicCpdRelease": false,
+    "privateKeyMaterialPublished": false
+  },
+  "artifacts": [
+    {
+      "name": "updates.xri",
+      "bytes": 1536,
+      "sha256": "296a30328d6c30d0e5211541ffb6388636e8d2215ba8a6c72768f70f8b8e0518",
+      "canonicalRootSha256": "276f9c927b37aae6b08ce5d66a36fac9ce001eac8765de565f239e74faa3585e"
+    },
+    {
+      "name": "mcpwatcher-module-macosx.zip",
+      "bytes": 2805051,
+      "sha1": "2a40ad73b8d087f29057c302b7d9c47a1958316f",
+      "sha256": "d3ebc235db224c8c7a1688f1bd0ee5c6784f356a910457dc0c1337f35668c7f8"
+    }
+  ],
+  "moduleSha256": "37d5f426ad21ee1244ab4af3ec34c8a9ad0b7ff52ec341baff4751637ff5fa6d",
+  "moduleSignatureSha256": "bf433115024910bde2f7b62e7e14ee09a5896a63b33b85f574a6417d42ca3df6",
+  "verification": "Artifact bytes, ZIP CRC, manifest checksums, matching signer identity and HTTP download hashes checked. Final cryptographic trust and runtime loading must be validated by PixInsight on the target installation."
+}

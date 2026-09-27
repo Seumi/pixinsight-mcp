@@ -5,14 +5,17 @@
 新增的 pi coding agent 适配、技能、测试及安装说明见 **[integrations/pi-agent](integrations/pi-agent/README.md)**。
 
 - 使用本 fork 请从源码构建；下面的上游 npm 包不会包含本 fork 的新增代码。
-- **源码仓库不等于 PixInsight 更新源。** 本 fork 尚未发布自己的签名模块和 `dist/updates.xri`。
-  下文的 PixInsight 更新地址仍指向上游；不要仅替换 URL 的账号名就安装。
-- 完全自有的模块分发还需配置自己的 PixInsight 签名身份、构建及发布流程，见
-  [docs/RELEASING.md](docs/RELEASING.md)。本次不会复制或冒用上游签名私钥。
+- **`dist-local` 是本机源码编译、本地身份签名的自用渠道**：当前为 MCP Watcher 1.3.5，
+  macOS arm64 + x86_64，PixInsight 1.9.5+。它只适用于相应许可证及已配置的本地签名身份，
+  不是面向所有用户的 CPD 认证发行。
+- **`dist` 是上游签名包的原样镜像**，发布者仍是 OfirPardo，不冒称 Seumi 自己签名。
+- 两个渠道的地址、签名边界与本地操作流程见 **[docs/LOCAL-SIGNING.md](docs/LOCAL-SIGNING.md)**；
+  当前自用产物的提交与 SHA256 见 [distribution/local-release.json](distribution/local-release.json)。
+  没有上传 `.xssk`、密码或明文私钥。
 
 An MCP server that lets an AI assistant drive PixInsight: open images, measure them, run any
-installed process, read the results back. PixInsight stays responsive while it works, so you can
-watch and intervene.
+installed process, read the results back. The watcher yields to PixInsight while idle;
+long-running processing commands can still occupy the application.
 
 Cross-platform: Windows, macOS and Linux.
 
@@ -55,8 +58,13 @@ On Windows, if a client cannot resolve `npx`, use `"command": "cmd"` with
 https://raw.githubusercontent.com/pardovot/pixinsight-mcp/dist/
 ```
 
-Then `Resources > Updates > Check for Updates` and restart. Signed with a Certified PixInsight
-Developer identity, so the dialog shows *Verified. Certified developer: OfirPardo*.
+Then `Resources > Updates > Check for Updates` and restart. This upstream channel is signed with a
+Certified PixInsight Developer identity, so the dialog shows *Verified. Certified developer: OfirPardo*.
+
+**本机自签名渠道（仅对应许可证用户）：** 改用
+`https://raw.githubusercontent.com/Seumi/pixinsight-mcp/dist-local/`，并先完成
+[本地签名身份配置](docs/LOCAL-SIGNING.md)。不要与同一模块的上游/镜像源同时混用。
+本地身份不等于公开 CPD 身份，签名异常时不要关闭验证。
 
 **3. Start it.** `Process > Utilities > MCP Watcher > Start`, then ask your assistant to list your
 open images. If it answers, you are connected.
@@ -100,12 +108,13 @@ Definitions live in `src/tools/*.ts`. Verified gotchas: [`docs/facts.md`](docs/f
   PixInsight
 ```
 
-PixInsight has no socket or HTTP API, so a file bridge is the only route in. Round trip is about
-one poll interval, 300 ms by default.
+This implementation uses a local file bridge rather than a socket or HTTP API.
+Round-trip latency includes both the native watcher's and the MCP client's polling intervals.
 
 The runtime is a compiled module rather than a PJSR script because a running script holds
 PixInsight's only thread, which blocks the interface until it returns. The module's timer fires on
-the event loop instead, which is why the application stays usable while a run is in progress.
+the event loop instead, leaving the application free between requests. Individual commands still
+execute on the main thread; interactivity during a command depends on the process being run.
 
 > Anything that can write to `~/.pixinsight-mcp/bridge/commands` can run arbitrary code inside
 > PixInsight. Keep the directory user-private, never on a shared or synced path.
